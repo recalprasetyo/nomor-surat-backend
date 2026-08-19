@@ -2,7 +2,6 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
@@ -11,4 +10,35 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// User model for login and registration
+// number letter generator
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String
+  password        String
+  letterRegisters LetterRegister[]
+
+  @@map("users")
+}
+
+// Letter model for storing letters
+// number letter generator
+model LetterRegister {
+  id              Int      @id @default(autoincrement())
+  serialNumber    Int      @map("serial_number") // serial number
+  referenceNumber String   @unique @map("reference_number") // reference number
+  type            String   @map("type") // type of letter
+  code            String   @map("code") // code of letter
+  drafter         String   @map("drafter") // drafter of letter
+  regarding       String   @map("regarding") @db.Text // regarding of letter
+  note            String?  @map("note") @db.Text // note of letter
+  status          String   @default("pending") @map("status") // status of letter
+  date            DateTime @default(now()) @map("date") // date of letter
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String   @map("user_id") // user id of letter
+
+  @@map("letter_registers")
 }
