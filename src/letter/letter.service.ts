@@ -2,10 +2,13 @@ import {
   Injectable,
   InternalServerErrorException,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateLetterDto } from './dto/letter.dto';
 import { Prisma } from '../../generated/prisma/client';
+import { GetLetterDto } from './dto/get.dto';
+import { UpdateLetterDto } from './dto/update.dto';
 
 @Injectable()
 export class LetterService {
@@ -89,5 +92,42 @@ export class LetterService {
         'An error occurred while generating the letter number.',
       );
     }
+  }
+
+  async getLetters(filterDto: GetLetterDto) {
+    const { search, type } = filterDto;
+
+    return await this.prisma.letterRegister.findMany({
+      where: {
+        type: type ? type : undefined,
+        OR: search
+          ? [
+              { regarding: { contains: search, mode: 'insensitive' } },
+              { referenceNumber: { contains: search, mode: 'insensitive' } },
+            ]
+          : undefined,
+      },
+      orderBy: {
+        date: 'desc',
+      },
+    });
+  }
+
+  async updateLetter(id: number, updateDto: UpdateLetterDto) {
+    const letter = await this.prisma.letterRegister.findUnique({
+      where: { id },
+    });
+
+    if (!letter) {
+      throw new NotFoundException(`Letter with ID ${id} not found.`);
+    }
+
+    return await this.prisma.letterRegister.update({
+      where: { id },
+      data: {
+        status: updateDto.status,
+        note: updateDto.note,
+      },
+    });
   }
 }

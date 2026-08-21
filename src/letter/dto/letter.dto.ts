@@ -22,5 +22,5 @@ export class CreateLetterDto {
   // note
   @IsString({ message: 'Note must be a string' })
   @IsNotEmpty({ message: 'Note is required' })
-  note!: string;
+  note?: string;
 }
